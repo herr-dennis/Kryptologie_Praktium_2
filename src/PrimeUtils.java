@@ -35,6 +35,9 @@ public class PrimeUtils {
     }
 
     public int checkPrime() {
+        if(n.intValue()==2 || n.intValue()==3){
+            return 0;
+        }
         for (int i = 0; i < it; i++) {
             int tmp = millerRabinTest();
             if (tmp == 1) {
@@ -44,13 +47,23 @@ public class PrimeUtils {
         return 0; // Zahl ist wahrscheinlich prim
     }
 
+    /**
+     * MillerRabin Algorithmus.
+     * Verwendet das Verfahren "Top-Down" der Exponent wird immer halbiert.
+     *
+     * @return 1 für nicht Primzahl, 0 für Primzahl
+     */
     public int millerRabinTest() {
         BigInteger exponent = n.subtract(BigInteger.ONE);
         BigInteger a = getRandomNumber();
 
+        // Sonst inf. Loop
+        if(n.equals(BigInteger.TWO)) {
+            return 0;
+        }
         // Sonderfall: n <= 2
         if (n.compareTo(BigInteger.valueOf(2)) <= 0) {
-            throw new IllegalArgumentException("n muss größer als 2 sein.");
+            throw new IllegalArgumentException("Muss größer 2 sein");
         }
 
         // Geraden Zahlen sind keine Primzahlen
@@ -75,15 +88,56 @@ public class PrimeUtils {
         return 0; // Zahl ist wahrscheinlich prim
     }
 
+    /**
+     * Wird standardmäßig verwendet.
+     * Generiert Zufallszahlen zwischen [2 bis n-1]
+     * Zufallszahlen werden mit BigInteger generiert, normaler Integer reicht nicht aus,
+     * Überlauf dann Exceptions
+     * @return zufällige Zahl zwischen [2 bis n-1]
+     */
     private BigInteger getRandomNumber() {
 
-        BigInteger a = new BigInteger("2");
-        int rnd_ = 0;
+        // Wenn n = 0, gib sofort 0 zurück
+        if (n.equals(BigInteger.ZERO)) {
+            return BigInteger.ZERO;
+        }
+
+        BigInteger a;
+        Random rand = new Random();
+
         if (modus) {
-            Random rand = new Random();
+            // Generiere ein zufälliges a im Bereich [2, n - 1]
             do {
                 a = new BigInteger(n.bitLength() - 1, rand);
             } while (a.compareTo(BigInteger.TWO) < 0 || a.compareTo(n.subtract(BigInteger.ONE)) >= 0);
+
+            return a;
+        } else {
+            // Wenn nicht im Modus (modus = false), benutze die Zeugen-Variable
+            a = BigInteger.valueOf(Zeugen).add(BigInteger.ONE);
+            Zeugen++;
+            return a;
+        }
+    }
+
+
+    /**
+     * Wird verwendet bei nextPrime
+     * @param n_obereSchranke schränkt die Größe der Zufallszahl nach oben ein.
+     * @return eine zufällige Zahl von 0 bis n
+     * Zahlen im Interval [0-3] werden in den anderen Methoden korrekt behandelt.
+     * Hier darf n_obereSchranke nicht <= 0 sein !
+     */
+    private BigInteger getRandomNumber(BigInteger n_obereSchranke) {
+
+        if(n_obereSchranke.intValue()==0){
+            return BigInteger.ZERO;
+        }
+
+        BigInteger a = new BigInteger("2");
+        if (modus) {
+            Random rand = new Random();
+            a = new BigInteger(n_obereSchranke.bitLength() -1, rand);
             return a;
         }
         if (!modus) {
@@ -95,13 +149,27 @@ public class PrimeUtils {
         return a;
     }
 
+    /**
+     * Berechnet die nächste Primzahl >=n
+     * Wenn n eine Primzahl ist, wird sie direkt zurückgegeben
+     * @return die nächste Primzahl
+     */
     public BigInteger nextPrime() {
+
+        if(n.intValue()==0 || n.intValue()==1 || n.intValue()==2){
+            BigInteger tmp = BigInteger.valueOf(2);
+            return tmp;
+        }
         while (checkPrime() == 1) {
             n = n.add(BigInteger.ONE);
         }
         return n;
     }
 
+    /**
+     * Der Boolean modus, schaltet die getRandom-Methode um, dass sie inkrementiert
+     * Zählt die Anzahl der Zeugen
+     */
     public int anzahlZeugen() {
         modus = false;
         int maxZeuge = n.intValue()-1;
@@ -114,6 +182,21 @@ public class PrimeUtils {
         }
         return anzahlZeuge;
 
+    }
+
+    public double nextPrimeAverage(int anz){
+
+        BigInteger m = null;
+        double diff = 0;
+        BigInteger obereSchranke = n;
+
+        for (int i = 0; i < anz; i++) {
+            m = getRandomNumber(obereSchranke);
+            n = m;
+            nextPrime =   nextPrime();
+            diff = diff + (nextPrime.doubleValue() - m.doubleValue());
+        }
+        return diff/anz;
     }
 
     public void reInit(BigInteger n, BigInteger it) {
@@ -137,7 +220,6 @@ public class PrimeUtils {
         }
 
     }
-
 
 }
 
