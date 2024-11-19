@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.Scanner;
 
 public class Main {
-    static BigInteger a = null;
-    static BigInteger b = null;
+    static BigInteger n = null;
+    static int it =0;
     static int choice_ = 0;
     public static void main(String[] args) {
 
@@ -14,19 +14,25 @@ public class Main {
 
         for (int i = 0; i < primenumbers.size(); i++) {
             PrimeUtils primeUtils = new PrimeUtils(primenumbers.get(i), 500 );
-            int iaa =  primeUtils.checkPrime();
-            if(iaa == 1){
-                System.out.println("Fehler bei : " + primenumbers.get(i));
+            int iaa =  primeUtils.checkPrime(BigInteger.valueOf(primenumbers.get(i)),500);
+            if(iaa == 0){
+                System.out.println("Ist Primezahl: : " + primenumbers.get(i));
             }
         }
+
+
+
+       PrimeUtils p = new PrimeUtils();
+        int a = p.anzahlZeugen(new BigInteger("325")  );
+        System.out.println(a);
 
 
 
         int choice = userInput();
         if(choice==1){
             getUserInput();
-            PrimeUtils primeUtils2 = new PrimeUtils(a,b);
-          int result = primeUtils2.checkPrime();
+            PrimeUtils primeUtils2 = new PrimeUtils();
+          int result = primeUtils2.checkPrime(n, it);
             if(result==0){
                 System.out.println("Prime is a prime number");
             }else {
@@ -35,14 +41,14 @@ public class Main {
         }
         else if(choice==2){
             getUserInput();
-            PrimeUtils primeUtils3 = new PrimeUtils(a,b);
-            BigInteger prim = primeUtils3.nextPrime();
+            PrimeUtils primeUtils3 = new PrimeUtils();
+            BigInteger prim = primeUtils3.nextPrime(n, it);
             System.out.println("Die nächste Primzahl ist: " + prim.toString());
         }
         else if(choice==3){
             getUserInput();
-            PrimeUtils primeUtils4 = new PrimeUtils(a,b);
-            int result = primeUtils4.anzahlZeugen();
+            PrimeUtils primeUtils4 = new PrimeUtils();
+            int result = primeUtils4.anzahlZeugen(n);
             System.out.println("Die Anzahl der Zeugen ist: " + result);
         }
         else if(choice==4){
@@ -52,15 +58,15 @@ public class Main {
 
                 getUserInput();
 
-                PrimeUtils primeUtils5 = new PrimeUtils(a,b);
+                PrimeUtils primeUtils5 = new PrimeUtils();
                 System.out.println("anz eingeben....");
                 String anzString = scanner.nextLine().trim();
                 int anz = Integer.parseInt(anzString);
                 long startTime = System.currentTimeMillis();
-                double result = primeUtils5.nextPrimeAverage(anz);
+                double result = primeUtils5.nextPrimeAverage(n, it, anz);
                 long endTime = System.currentTimeMillis();
                 long elapsedTime = endTime - startTime;
-                System.out.println("Brechnungszeit ist: " + elapsedTime);
+                System.out.println("Berechnungszeit ist: " + elapsedTime);
                 System.out.println("Mittelwert ist : " + result);
 
 
@@ -92,8 +98,8 @@ public class Main {
             System.out.println("it eingeben....");
             String itString = scanner.nextLine().trim();
             System.out.println("it = "+itString);
-            b = userControls.expStringToBigInt(itString);
+            it = Integer.parseInt(itString);
         }
-        a = userControls.expStringToBigInt(nString);
+        n = userControls.expStringToBigInt(nString);
     }
 }

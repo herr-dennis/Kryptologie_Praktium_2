@@ -3,7 +3,7 @@ import java.util.Random;
 
 public class PrimeUtils {
 
-    private BigInteger n = null;
+    private BigInteger n_intern = null;
     private int it = 0;
     private BigInteger nextPrime = null;
     private int Zeugen = 0;
@@ -12,8 +12,7 @@ public class PrimeUtils {
     PrimeUtils(BigInteger n, BigInteger it) {
 
         try {
-            this.n = n;
-
+            this.n_intern = n;
             this.it = it.intValue();
             this.nextPrime = n;
         } catch (Exception e) {
@@ -25,7 +24,7 @@ public class PrimeUtils {
     PrimeUtils(int n, int it) {
 
         try {
-            this.n = BigInteger.valueOf(n);
+            this.n_intern = BigInteger.valueOf(n);
             this.it = it;
             this.nextPrime = BigInteger.valueOf(n);
         } catch (Exception e) {
@@ -33,13 +32,14 @@ public class PrimeUtils {
         }
 
     }
+    PrimeUtils(){}
 
-    public int checkPrime() {
+    public int checkPrime(BigInteger n, int it) {
         if(n.intValue()==2 || n.intValue()==3){
             return 0;
         }
         for (int i = 0; i < it; i++) {
-            int tmp = millerRabinTest();
+            int tmp = istZeuge(n,getRandomNumber(n));
             if (tmp == 1) {
                 return 1; // Zahl ist sicher keine Primzahl
             }
@@ -54,13 +54,66 @@ public class PrimeUtils {
      * @return 1 für nicht Primzahl, 0 für Primzahl
      */
     public int millerRabinTest() {
-        BigInteger exponent = n.subtract(BigInteger.ONE);
-        BigInteger a = getRandomNumber();
+        BigInteger exponent = n_intern.subtract(BigInteger.ONE);
+        BigInteger a = getRandomNumber(n_intern);
 
         // Sonst inf. Loop
-        if(n.equals(BigInteger.TWO)) {
+        if(n_intern.equals(BigInteger.TWO)) {
             return 0;
         }
+        // Sonderfall: n <= 2
+        if (n_intern.compareTo(BigInteger.valueOf(2)) <= 0) {
+            throw new IllegalArgumentException("Muss größer 2 sein");
+        }
+
+        // Geraden Zahlen sind keine Primzahlen
+        if (n_intern.mod(BigInteger.valueOf(2)).equals(BigInteger.ZERO)) {
+            return 1; // Zahl ist keine Primzahl
+        }
+
+        // Schrittweise Exponent-Halbierung
+        while (exponent.mod(BigInteger.valueOf(2)).equals(BigInteger.ZERO)) {
+            BigInteger tmp = a.modPow(exponent, n_intern);
+
+            // Wenn tmp kongruent -1 modulo n ist, ist die Zahl wahrscheinlich prim
+            if (tmp.equals(n_intern.subtract(BigInteger.ONE))) {
+                return 0;
+            }
+            // Wenn tmp ungleich 1 ist, ist die Zahl wahrscheinlich keine Primzahl
+            if (!tmp.equals(BigInteger.ONE)) {
+                return 1;
+            }
+            exponent = exponent.divide(BigInteger.TWO);
+        }
+        return 0; // Zahl ist wahrscheinlich prim
+    }
+
+    /**
+     * Wird standardmäßig verwendet.
+     * Generiert Zufallszahlen zwischen [2 bis n-1]
+     * Zufallszahlen werden mit BigInteger generiert, normaler Integer reicht nicht aus,
+     * Überlauf dann Exceptions
+     * @return zufällige Zahl zwischen [2 bis n-1]
+     */
+    private BigInteger getRandomNumber(BigInteger n) {
+
+        // Wenn n = 0, gib sofort 0 zurück
+        if (n.equals(BigInteger.ZERO)) {
+            return BigInteger.ZERO;
+        }
+        BigInteger a;
+        Random rand = new Random();
+            // Generiere ein zufälliges a im Bereich [2, n - 1]
+            do {
+                a = new BigInteger(n.bitLength() - 1, rand);
+            } while (a.compareTo(BigInteger.TWO) < 0 || a.compareTo(n.subtract(BigInteger.ONE)) >= 0);
+
+            return a;
+
+    }
+    public int istZeugeExpDiv(BigInteger n, BigInteger a) {
+        BigInteger exponent = n.subtract(BigInteger.ONE);
+
         // Sonderfall: n <= 2
         if (n.compareTo(BigInteger.valueOf(2)) <= 0) {
             throw new IllegalArgumentException("Muss größer 2 sein");
@@ -87,80 +140,50 @@ public class PrimeUtils {
         }
         return 0; // Zahl ist wahrscheinlich prim
     }
+    private int istZeuge(BigInteger n, BigInteger a) {
 
-    /**
-     * Wird standardmäßig verwendet.
-     * Generiert Zufallszahlen zwischen [2 bis n-1]
-     * Zufallszahlen werden mit BigInteger generiert, normaler Integer reicht nicht aus,
-     * Überlauf dann Exceptions
-     * @return zufällige Zahl zwischen [2 bis n-1]
-     */
-    private BigInteger getRandomNumber() {
+        BigInteger nMinus1 = n.subtract(BigInteger.ONE);
+        BigInteger d = nMinus1;
+        int s = 0;
 
-        // Wenn n = 0, gib sofort 0 zurück
-        if (n.equals(BigInteger.ZERO)) {
-            return BigInteger.ZERO;
+        // n-1 als d * 2^s
+        while (d.mod(BigInteger.TWO).equals(BigInteger.ZERO)) {
+            d = d.divide(BigInteger.TWO);
+            s++;
         }
 
-        BigInteger a;
-        Random rand = new Random();
-
-        if (modus) {
-            // Generiere ein zufälliges a im Bereich [2, n - 1]
-            do {
-                a = new BigInteger(n.bitLength() - 1, rand);
-            } while (a.compareTo(BigInteger.TWO) < 0 || a.compareTo(n.subtract(BigInteger.ONE)) >= 0);
-
-            return a;
-        } else {
-            // Wenn nicht im Modus (modus = false), benutze die Zeugen-Variable
-            a = BigInteger.valueOf(Zeugen).add(BigInteger.ONE);
-            Zeugen++;
-            return a;
+        // Berechne a^d % n
+        BigInteger x = a.modPow(d, n);
+        if (x.equals(BigInteger.ONE) || x.equals(nMinus1)) {
+            return 0; // Kein Zeuge
         }
+
+        // Iteriere über runden: x^2 % n
+        for (int r = 0; r < s - 1; r++) {
+            x = x.modPow(BigInteger.TWO, n);
+            if (x.equals(nMinus1)) {
+                return 0; // Kein Zeuge
+            }
+        }
+
+        return 1; // Zeuge gefunden
     }
 
-
-    /**
-     * Wird verwendet bei nextPrime
-     * @param n_obereSchranke schränkt die Größe der Zufallszahl nach oben ein.
-     * @return eine zufällige Zahl von 0 bis n
-     * Zahlen im Interval [0-3] werden in den anderen Methoden korrekt behandelt.
-     * Hier darf n_obereSchranke nicht <= 0 sein !
-     */
-    private BigInteger getRandomNumber(BigInteger n_obereSchranke) {
-
-        if(n_obereSchranke.intValue()==0){
-            return BigInteger.ZERO;
-        }
-
-        BigInteger a = new BigInteger("2");
-        if (modus) {
-            Random rand = new Random();
-            a = new BigInteger(n_obereSchranke.bitLength() -1, rand);
-            return a;
-        }
-        if (!modus) {
-            a = BigInteger.valueOf(Zeugen);
-            a = a.add(BigInteger.ONE);
-            Zeugen++;
-        }
-
-        return a;
-    }
 
     /**
      * Berechnet die nächste Primzahl >=n
      * Wenn n eine Primzahl ist, wird sie direkt zurückgegeben
      * @return die nächste Primzahl
      */
-    public BigInteger nextPrime() {
+    public BigInteger nextPrime(BigInteger n, int it) {
 
-        if(n.intValue()==0 || n.intValue()==1 || n.intValue()==2){
+       /* if(n.intValue()==0 || n.intValue()==1 || n.intValue()==2){
             BigInteger tmp = BigInteger.valueOf(2);
             return tmp;
         }
-        while (checkPrime() == 1) {
+
+        */
+        while (checkPrime(n, it) == 1) {
             n = n.add(BigInteger.ONE);
         }
         return n;
@@ -171,8 +194,7 @@ public class PrimeUtils {
      * Zählt die Anzahl der Zeugen
      */
     public int anzahlZeugen() {
-        modus = false;
-        int maxZeuge = n.intValue()-1;
+        int maxZeuge = n_intern.intValue()-1;
         int anzahlZeuge = 0;
 
         for (int i = 0; i < maxZeuge; i++) {
@@ -184,7 +206,24 @@ public class PrimeUtils {
 
     }
 
-    public double nextPrimeAverage(int anz){
+    public int anzahlZeugen(BigInteger n) {
+        BigInteger a = new BigInteger("1");
+        int maxZeuge = n.intValue()-1;
+        int anzahlZeuge = 0;
+
+        for (int i = 0; i < maxZeuge; i++) {
+            if (istZeuge(n,a) == 1) {
+                System.out.println("Hier ist ein Zeuge:"+a.intValue());
+                anzahlZeuge++;
+            }
+            a = a.add(BigInteger.ONE);
+        }
+        return anzahlZeuge;
+
+    }
+
+
+    public double nextPrimeAverage(BigInteger n, int it, int anz){
 
         BigInteger m = null;
         double diff = 0;
@@ -193,7 +232,7 @@ public class PrimeUtils {
         for (int i = 0; i < anz; i++) {
             m = getRandomNumber(obereSchranke);
             n = m;
-            nextPrime =   nextPrime();
+            nextPrime =   nextPrime(n, it);
             diff = diff + (nextPrime.doubleValue() - m.doubleValue());
         }
         return diff/anz;
@@ -201,7 +240,7 @@ public class PrimeUtils {
 
     public void reInit(BigInteger n, BigInteger it) {
         try {
-            this.n = n;
+            this.n_intern = n;
             this.it = it.intValue();
             this.nextPrime = n;
         } catch (NumberFormatException e) {
@@ -212,7 +251,7 @@ public class PrimeUtils {
 
     public void reInit(int n, int it) {
         try {
-            this.n = BigInteger.valueOf(n);
+            this.n_intern = BigInteger.valueOf(n);
             this.it = it;
             this.nextPrime = BigInteger.valueOf(n);
         } catch (NumberFormatException e) {
