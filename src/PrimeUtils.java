@@ -35,7 +35,7 @@ public class PrimeUtils {
     PrimeUtils(){}
 
     public int checkPrime(BigInteger n, int it) {
-        if(n.intValue()==2 || n.intValue()==3){
+        if(n.equals(BigInteger.TWO) || n.equals(BigInteger.valueOf(3))){
             return 0;
         }
         for (int i = 0; i < it; i++) {
