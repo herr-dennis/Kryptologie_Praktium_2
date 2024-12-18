@@ -1,31 +1,34 @@
+
+import java.io.IOException;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
 
 public class Main {
     static BigInteger n = null;
     static int it =0;
     static int choice_ = 0;
+    static private BigInteger fak1 = null;
+    static private BigInteger fak2 = null;
+
+
+
+
+
     public static void main(String[] args) {
-
         Scanner scanner = new Scanner(System.in);
-        ArrayList<Integer> primenumbers  = new ArrayList<>(List.of(2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199));
 
-        for (int i = 0; i < primenumbers.size(); i++) {
-            PrimeUtils primeUtils = new PrimeUtils(primenumbers.get(i), 500 );
-            int iaa =  primeUtils.checkPrime(BigInteger.valueOf(primenumbers.get(i)),500);
-            if(iaa == 0){
-                System.out.println("Ist Primezahl: : " + primenumbers.get(i));
-            }
-        }
+        RSA r = new RSA("Prof. Hoevers Keys");
+        //r.encrypt();
 
+        UserControls u = new UserControls();
+        u.countBytes("9a0a4157c8e7e1e10d1d68beabafdd83327650d374da180e773eace5441c3490");
 
+        //RSA();
 
-       PrimeUtils p = new PrimeUtils();
-        int a = p.anzahlZeugen(new BigInteger("325")  );
-        System.out.println(a);
-
+       HexConverter hex1 = new HexConverter();
+       BigInteger p = new BigInteger("4689919533358590928275807520471434120397285149467106736906341708110732277495608361425617430689574543082979770593528700894980458474456371186752878160854571068633245361593784929974207939668335967940161");
+      hex1.decimalToHex(p);
 
 
         int choice = userInput();
@@ -40,10 +43,13 @@ public class Main {
             }
         }
         else if(choice==2){
+
             getUserInput();
             PrimeUtils primeUtils3 = new PrimeUtils();
             BigInteger prim = primeUtils3.nextPrime(n, it);
             System.out.println("Die nächste Primzahl ist: " + prim.toString());
+            System.out.println("Bit-Länge: " +prim.bitLength() );
+
         }
         else if(choice==3){
             getUserInput();
@@ -53,11 +59,9 @@ public class Main {
         }
         else if(choice==4){
 
-
             while (true){
 
                 getUserInput();
-
                 PrimeUtils primeUtils5 = new PrimeUtils();
                 System.out.println("anz eingeben....");
                 String anzString = scanner.nextLine().trim();
@@ -68,15 +72,34 @@ public class Main {
                 long elapsedTime = endTime - startTime;
                 System.out.println("Berechnungszeit ist: " + elapsedTime);
                 System.out.println("Mittelwert ist : " + result);
-
-
             }
-
-
         }
-
     }
 
+    public static void Signa(){
+
+        //Hash-Funktion
+        BigInteger nh = new BigInteger("223390229630894823575503");
+        BigInteger eh = BigInteger.valueOf(23);
+        BigInteger m = new UserControls().expStringToBigInt("10^50");
+        m = m.multiply(nh);
+        BigInteger h = m.modPow(eh,nh);
+
+        System.out.println("Der Hashwert von m  :"+h + " durch die Hashfunktion");
+
+        BigInteger n_rsa = new BigInteger("922676962174818067510521705931");
+        BigInteger e_rsa = new BigInteger("17");
+        BigInteger s = new BigInteger("122213354635279262673569254549");
+
+        BigInteger h_strich = s.modPow(e_rsa,n_rsa);
+        System.out.println("h(m) = :" +h_strich +" s^e mod n");
+
+        if (h.equals(h_strich)) {
+            System.out.println("Die Signatur ist gültig.");
+        } else {
+            System.out.println("Die Signatur ist ungültig.");
+        }
+    }
     public static int userInput(){
         Scanner scanner = new Scanner(System.in);
         System.out.println("Welche Methode?\n 1) Test auf Primzahl" +

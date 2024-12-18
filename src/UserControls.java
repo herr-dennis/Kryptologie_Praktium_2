@@ -3,6 +3,65 @@ import java.math.BigInteger;
 public class UserControls {
 
 
+    public static String decimalToHex(BigInteger da) {
+
+        System.out.println("Der Dezimal-Wert vor der Umwandlung:" +da.toString());
+        String result = da.toString(16);
+        System.out.println("Der Hash-Wert nach  der Umwandlung von: " + result);
+
+        System.out.println("Zurück Umwandlung zur Kontrolle, durch andere Method:" );
+        BigInteger back = hexToDecimal(result);
+        System.out.println("Nach der Umwandlung der Kontrolle: " + back.toString());
+
+        if(result.equals(back.toString())) {
+            System.out.println("Die Hashwerte sind gleich! Methode funktioniert! " );
+        }
+        else
+        {
+            System.out.println("Die Hashwerte sind nicht gleich, Umwandlung funktioniert nicht!");
+        }
+
+        return result;
+    }
+
+
+
+    public void   countBytes(String hex) {
+        int nibbles = hex.length();
+        nibbles = nibbles / 2;
+        System.out.println("Bytes: " + nibbles);
+    }
+
+
+    public static BigInteger hexToDecimal(String hex) {
+        String input = hex;
+        System.out.println("Der Hashwert vor der Umwandlung zur dezimal-Zahl"+input);
+        BigInteger result = new BigInteger(input, 16);
+        System.out.println("Die dezimal-Zahl nach der Umwandlung"+result.toString());
+
+        System.out.println("Zurück Umwandlung zur Kontrolle durch andere Method");
+        String back_to_hash = decimalToHex(result);
+        BigInteger back = new BigInteger(back_to_hash, 16);
+
+        System.out.println("Nach der Umwandlung zur dezimal-Zahl: "+back);
+
+       if(result.equals(back)) {
+           System.out.println("Die dezimal-Zahlen sind gleich! Methode funktioniert! " );
+       }
+       else {
+           System.out.println("Die dezimal-Zahlen sind nicht gleich, Methode funktioniert nicht!");
+       }
+
+
+
+        return new BigInteger(hex, 16);
+    }
+
+
+
+
+
+
     public BigInteger expStringToBigInt(String exp) {
 
         String potenz = exp;

@@ -8,6 +8,8 @@ public class PrimeUtils {
     private BigInteger nextPrime = null;
     private int Zeugen = 0;
     private boolean modus = true;
+    private BigInteger fak1 = null;
+    private BigInteger fak2 = null;
 
     PrimeUtils(BigInteger n, BigInteger it) {
 
@@ -213,7 +215,6 @@ public class PrimeUtils {
 
         for (int i = 0; i < maxZeuge; i++) {
             if (istZeuge(n,a) == 1) {
-                System.out.println("Hier ist ein Zeuge:"+a.intValue());
                 anzahlZeuge++;
             }
             a = a.add(BigInteger.ONE);
@@ -222,7 +223,61 @@ public class PrimeUtils {
 
     }
 
+    public BigInteger[] calculateEuklidAlgoErweiterter( BigInteger bigA, BigInteger bigB,  BigInteger d) throws Exception {
 
+        /**
+         * Hier wird einfach die Tabelle erstellt
+         *      old_r     old_x    old_y
+         *        r        x         y
+         *
+         * Initialisierung wie im Script
+         */
+
+        // Stelle sicher, dass bigA und bigB initialisiert sind
+        if (bigA == null || bigB == null) {
+            throw new IllegalArgumentException("bigA und bigB müssen initialisiert werden.");
+        }
+
+        BigInteger old_r = bigA;
+        BigInteger r = bigB;
+        BigInteger old_x = BigInteger.ONE;
+        BigInteger x = BigInteger.ZERO;
+        BigInteger old_y = BigInteger.ZERO;
+        BigInteger y = BigInteger.ONE;
+
+        while (!r.equals(BigInteger.ZERO)) {
+            // q_k+1 = old_r div r
+            BigInteger q = old_r.divide(r);
+
+            // Update r: old_r mod r
+            BigInteger temp = r;
+            r = old_r.mod(r);
+            old_r = temp;
+
+            // x_k+1 = old_x - q * x
+            temp = x;
+            x = old_x.subtract(q.multiply(x));
+            old_x = temp;
+
+            // Update y
+            // y_k+1 = old_y - q * y
+            temp = y;
+            y = old_y.subtract(q.multiply(y));
+            old_y = temp;
+        }
+
+        // Überprüfung, ob eine Lösung existiert
+        if (!old_r.equals(BigInteger.ZERO) && d.mod(old_r).equals(BigInteger.ZERO)) {
+            BigInteger faktor = d.divide(old_r);
+            old_x = old_x.multiply(faktor);
+            old_y = old_y.multiply(faktor);
+        } else {
+            throw new Exception("Keine Lösung!");
+        }
+
+        // Am Ende von old_r ist der GGT, old_x und old_y sind die Koeffizienten
+        return new BigInteger[]{old_r, old_x, old_y};
+    }
     public double nextPrimeAverage(BigInteger n, int it, int anz){
 
         BigInteger m = null;
@@ -237,6 +292,32 @@ public class PrimeUtils {
         }
         return diff/anz;
     }
+
+
+
+    // GGT für BigInteger-Werte berechnen
+    public BigInteger calcGgtBigInteger(BigInteger bigA, BigInteger bigB) {
+        if (bigA.equals(BigInteger.ZERO)) return bigB;
+        if (bigB.equals(BigInteger.ZERO)) return bigA;
+
+        BigInteger r;
+        BigInteger ggt = BigInteger.ZERO;
+        boolean exit = false;
+
+        // Euklidischer Algorithmus für BigInteger
+        while (!exit) {
+            r = bigA.mod(bigB);
+            bigA = bigB;
+            bigB = r;
+            if (r.equals(BigInteger.ZERO)) {
+                exit = true;
+            } else {
+                ggt = r;
+            }
+        }
+        return ggt;
+    }
+
 
     public void reInit(BigInteger n, BigInteger it) {
         try {
